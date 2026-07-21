@@ -14,7 +14,8 @@ function startShooter() {
     let enemies = []
     let particles = []
     let score = 0
-    let lives = 3
+    let lives = 5
+    let maxLives = 5
     let wave = 1
     let pinchWas = false
     let shootCooldown = 0
@@ -91,15 +92,15 @@ function startShooter() {
                 bullets.push({ x: sx + 10, y: sy - 20, vy: -14 })
                 shootCooldown = 12
             }
-            pinchWas = hand.pinching
         }
 
+        pinchWas = hand.pinching
         shootCooldown--
 
         spawnTimer++
-        if (spawnTimer > Math.max(8, 40 - wave * 3)) {
+        if (spawnTimer > Math.max(20, 60 - wave * 3)) {
             spawnEnemy()
-            if (Math.random() > 0.5) spawnEnemy()
+            if (Math.random() > 0.7) spawnEnemy()
             spawnTimer = 0
         }
 
@@ -146,9 +147,6 @@ function startShooter() {
                 lives--
                 explode(sx, sy, "#00d2d2")
                 explode(e.x, e.y, e.color)
-                if (lives <= 0) {
-                    shooterOn = false
-                }
                 return false
             }
 
@@ -210,7 +208,7 @@ function startShooter() {
         ctx.fillText(score, 24, 44)
         ctx.fillStyle = "#e63c3c"
         ctx.font = "18px Courier New"
-        ctx.fillText("♥".repeat(lives) + "♡".repeat(3 - lives), 24, 72)
+        ctx.fillText("♥".repeat(lives) + "♡".repeat(maxLives - lives), 24, 72)
         ctx.fillStyle = "#00d2d2"
         ctx.font = "13px Courier New"
         ctx.fillText("WAVE " + wave, W - 90, 44)
