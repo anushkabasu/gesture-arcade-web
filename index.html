@@ -194,6 +194,18 @@ canvas {
     color: #333;
     z-index: 998;
 }
+
+#loading {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #555;
+    z-index: 998;
+}
+
 </style>
 </head>
 <body>
@@ -201,6 +213,7 @@ canvas {
 <video id="cam" style="display:none" playsinline></video>
 <canvas id="canvas"></canvas>
 <div id="hand-status">● NO HAND</div>
+<div id="loading">● STARTING CAMERA - ALLOW ACCESS WHEN PROMPTED</div>
 <canvas id="hand-cursor"></canvas>
 
 <div id="menu">
@@ -332,6 +345,7 @@ function detect() {
         hand.tiltY = ty / mag
         document.getElementById("hand-status").style.color = "#32e664"
         document.getElementById("hand-status").innerText = "● HAND DETECTED"
+        document.getElementById("loading").style.display = "none"
         updateCursor(hand.palmX * window.innerWidth, hand.palmY * window.innerHeight, true)
     } else {
         hand.detected = false
