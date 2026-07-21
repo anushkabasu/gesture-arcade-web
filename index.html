@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GESTURE ARCADE</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+
+body {
+    background: #0a0a0a;
+    color: #e8e8e8;
+    font-family: "Courier New", monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+h1 {
+    font-size: 52px;
+    letter-spacing: 8px;
+    color: #fff;
+    margin-top: 40px;
+}
+
+.sub {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: #444;
+    margin-top: 10px;
+}
+
+.line {
+    width: 80%;
+    border: none;
+    border-top: 1px solid #1e1e1e;
+    margin: 30px 0;
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    width: 80%;
+    max-width: 860px;
+}
+
+.card {
+    border: 1px solid #2a2a2a;
+    padding: 22px;
+    width: 380px;
+    cursor: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.card:hover, .card.hovered {
+    border-color: #666;
+    background: #111;
+}
+
+.card .num { font-size: 11px; color: #444; letter-spacing: 3px; }
+.card .name { font-size: 17px; color: #fff; letter-spacing: 3px; }
+.card .ctrl { font-size: 11px; color: #444; letter-spacing: 2px; }
+
+.confirm-bar {
+    height: 2px;
+    background: #1e1e1e;
+    margin-top: 10px;
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+.confirm-fill {
+    height: 100%;
+    width: 0%;
+    background: #fff;
+    transition: width 0.05s linear;
+}
+
+.footer {
+    width: 80%;
+    text-align: center;
+    margin-top: 36px;
+    margin-bottom: 30px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #3a3a3a;
+    line-height: 2.2;
+}
+
+#popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #111;
+    border: 1px solid #333;
+    padding: 36px 44px;
+    z-index: 100;
+    min-width: 500px;
+}
+
+#popup h2 {
+    font-size: 16px;
+    letter-spacing: 4px;
+    color: #fff;
+    margin-bottom: 24px;
+}
+
+#popup p {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #888;
+    line-height: 2.4;
+}
+
+#popup .close-btn {
+    margin-top: 24px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #444;
+    cursor: none;
+}
+
+#popup .close-btn:hover { color: #aaa; }
+
+#hand-status {
+    position: fixed;
+    top: 18px;
+    right: 22px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #333;
+    z-index: 998;
+}
+
+#hand-cursor {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+    width: 28px;
+    height: 28px;
+    transform: translate(-50%, -50%);
+    display: none;
+}
+
+canvas {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+#back-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: transparent;
+    border: 1px solid #2a2a2a;
+    color: #444;
+    font-family: "Courier New", monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 8px 18px;
+    cursor: none;
+    z-index: 998;
+}
+
+#back-btn:hover { border-color: #666; color: #aaa; }
+
+#game-hint {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #333;
+    z-index: 998;
+}
+</style>
+</head>
+<body>
+
+<video id="cam" style="display:none" playsinline></video>
+<canvas id="canvas"></canvas>
+<div id="hand-status">● NO HAND</div>
+<canvas id="hand-cursor"></canvas>
+
+<div id="menu">
+    <h1>GESTURE ARCADE</h1>
+    <p class="sub">V2.0 &nbsp;///&nbsp; HAND CONTROLLED &nbsp;///&nbsp; WEB EDITION</p>
+    <hr class="line">
+
+    <div class="cards">
+        <div class="card" id="card-0" onclick="startGame('pong')">
+            <span class="num">[ 01 ]</span>
+            <span class="name">HAND PONG</span>
+            <span class="ctrl">PALM UP / DOWN</span>
+            <div class="confirm-bar"><div class="confirm-fill" id="fill-0"></div></div>
+        </div>
+        <div class="card" id="card-1" onclick="startGame('shooter')">
+            <span class="num">[ 02 ]</span>
+            <span class="name">SPACE SHOOTER</span>
+            <span class="ctrl">PALM + PINCH</span>
+            <div class="confirm-bar"><div class="confirm-fill" id="fill-1"></div></div>
+        </div>
+        <div class="card" id="card-2" onclick="startGame('snake')">
+            <span class="num">[ 03 ]</span>
+            <span class="name">SNAKE</span>
+            <span class="ctrl">POINT FINGER TO STEER</span>
+            <div class="confirm-bar"><div class="confirm-fill" id="fill-2"></div></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        POINT PALM AT A CARD &nbsp;///&nbsp; PINCH TO LAUNCH<br>
+        <span onclick="document.getElementById('popup').style.display='block'" style="cursor:pointer;text-decoration:underline;color:#555;">PRESS [ I ] FOR INSTRUCTIONS</span>
+    </div>
+</div>
+
+<div id="popup">
+    <h2>HOW TO PLAY</h2>
+    <p>
+        HAND PONG &nbsp;&nbsp;&nbsp;&nbsp;— move your open palm up and down<br>
+        SPACE SHOOTER — move palm to aim, pinch to fire<br>
+        SNAKE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— point your index finger where you want to go
+    </p>
+    <p class="close-btn" onclick="closePopup()">[ CLOSE ]</p>
+</div>
+
+<button id="back-btn" onclick="goBack()">← BACK</button>
+<div id="game-hint"></div>
+
+<script src="pong.js"></script>
+<script src="shooter.js"></script>
+<script src="snake.js"></script>
+
+<script type="module">
+import { HandLandmarker, FilesetResolver } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.3"
+
+window.hand = {
+    detected: false,
+    palmX: 0.5, palmY: 0.5,
+    indexX: 0.5, indexY: 0.5,
+    pinching: false, fist: false,
+    tiltX: 0, tiltY: 0,
+    velX: 0, velY: 0,
+    prevX: 0.5, prevY: 0.5
+}
+
+const fs = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+)
+
+const hl = await HandLandmarker.createFromOptions(fs, {
+    baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+    },
+    numHands: 1,
+    runningMode: "VIDEO"
+})
+
+const vid = document.getElementById("cam")
+const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+vid.srcObject = stream
+await vid.play()
+
+const cursorEl = document.getElementById("hand-cursor")
+const cursorCtx = cursorEl.getContext("2d")
+cursorEl.width = 28
+cursorEl.height = 28
+
+function updateCursor(x, y, show) {
+    if (!show) {
+        cursorEl.style.display = "none"
+        return
+    }
+    cursorEl.style.display = "block"
+    cursorEl.style.left = x + "px"
+    cursorEl.style.top = y + "px"
+    cursorCtx.clearRect(0, 0, 28, 28)
+    cursorCtx.strokeStyle = "#fff"
+    cursorCtx.lineWidth = 1.5
+    cursorCtx.beginPath()
+    cursorCtx.arc(14, 14, 10, 0, Math.PI * 2)
+    cursorCtx.stroke()
+    cursorCtx.fillStyle = "#fff"
+    cursorCtx.beginPath()
+    cursorCtx.arc(14, 14, 3, 0, Math.PI * 2)
+    cursorCtx.fill()
+}
+
+function detect() {
+    const r = hl.detectForVideo(vid, performance.now())
+    if (r.landmarks && r.landmarks.length > 0) {
+        const lm = r.landmarks[0]
+        hand.detected = true
+        hand.palmX = 1 - (lm[0].x + lm[5].x + lm[9].x + lm[13].x + lm[17].x) / 5
+        hand.palmY = (lm[0].y + lm[5].y + lm[9].y + lm[13].y + lm[17].y) / 5
+        hand.velX = hand.palmX - hand.prevX
+        hand.velY = hand.palmY - hand.prevY
+        hand.prevX = hand.palmX
+        hand.prevY = hand.palmY
+        hand.indexX = lm[8].x
+        hand.indexY = lm[8].y
+        const dx = lm[4].x - lm[8].x
+        const dy = lm[4].y - lm[8].y
+        hand.pinching = Math.sqrt(dx*dx + dy*dy) < 0.07
+        const up = [lm[8].y < lm[6].y, lm[12].y < lm[10].y, lm[16].y < lm[14].y, lm[20].y < lm[18].y]
+        hand.fist = up.every(f => !f)
+        const tx = lm[5].x - lm[17].x
+        const ty = lm[5].y - lm[17].y
+        const mag = Math.sqrt(tx*tx + ty*ty) || 1
+        hand.tiltX = tx / mag
+        hand.tiltY = ty / mag
+        document.getElementById("hand-status").style.color = "#32e664"
+        document.getElementById("hand-status").innerText = "● HAND DETECTED"
+        updateCursor(hand.palmX * window.innerWidth, hand.palmY * window.innerHeight, true)
+    } else {
+        hand.detected = false
+        document.getElementById("hand-status").style.color = "#333"
+        document.getElementById("hand-status").innerText = "● NO HAND"
+        updateCursor(0, 0, false)
+    }
+    requestAnimationFrame(detect)
+}
+
+detect()
+
+const GAMES = ['pong', 'shooter', 'snake']
+const HINTS = [
+    "MOVE PALM UP / DOWN TO CONTROL PADDLE",
+    "MOVE PALM TO AIM  ///  PINCH TO FIRE",
+    "POINT YOUR INDEX FINGER WHERE YOU WANT THE SNAKE TO GO"
+]
+const CONFIRM_TIME = 1500
+let hoveredCard = -1
+let confirmStart = null
+let inGame = false
+
+function menuLoop() {
+    if (inGame) return
+    const cards = document.querySelectorAll('.card')
+    let newHover = -1
+
+    if (hand.detected) {
+        const px = hand.palmX * window.innerWidth
+        const py = hand.palmY * window.innerHeight
+        cards.forEach((card, i) => {
+            const rect = card.getBoundingClientRect()
+            if (px > rect.left && px < rect.right && py > rect.top && py < rect.bottom) {
+                newHover = i
+            }
+        })
+    }
+
+    if (newHover !== hoveredCard) {
+        hoveredCard = newHover
+        confirmStart = null
+        cards.forEach((c, i) => {
+            c.classList.toggle('hovered', i === hoveredCard)
+            document.getElementById("fill-" + i).style.width = "0%"
+        })
+    }
+
+    if (hoveredCard >= 0 && hand.detected && hand.pinching) {
+        if (!confirmStart) confirmStart = Date.now()
+        const pct = Math.min(100, (Date.now() - confirmStart) / CONFIRM_TIME * 100)
+        document.getElementById("fill-" + hoveredCard).style.width = pct + "%"
+        if (pct >= 100) startGame(GAMES[hoveredCard])
+    } else {
+        confirmStart = null
+        if (hoveredCard >= 0) document.getElementById("fill-" + hoveredCard).style.width = "0%"
+    }
+
+    requestAnimationFrame(menuLoop)
+}
+
+menuLoop()
+
+window.stopAll = function() {
+    stopPong()
+    stopShooter()
+    stopSnake()
+}
+
+window.startGame = function(name) {
+    inGame = true
+    document.getElementById("menu").style.display = "none"
+    document.getElementById("canvas").style.display = "block"
+    document.getElementById("back-btn").style.display = "block"
+    const idx = GAMES.indexOf(name)
+    const hint = document.getElementById("game-hint")
+    hint.style.display = "block"
+    hint.innerText = HINTS[idx] || ""
+    if (name === 'pong') startPong()
+    if (name === 'shooter') startShooter()
+    if (name === 'snake') startSnake()
+}
+
+window.goBack = function() {
+    inGame = false
+    window.stopAll()
+    document.getElementById("menu").style.display = "flex"
+    document.getElementById("canvas").style.display = "none"
+    document.getElementById("back-btn").style.display = "none"
+    document.getElementById("game-hint").style.display = "none"
+    document.querySelectorAll('.confirm-fill').forEach(f => f.style.width = "0%")
+    hoveredCard = -1
+    confirmStart = null
+    menuLoop()
+}
+
+window.closePopup = function() {
+    document.getElementById("popup").style.display = "none"
+}
+
+document.addEventListener("keydown", e => {
+    if (e.key === "i" || e.key === "I") {
+        const popup = document.getElementById("popup")
+        popup.style.display = popup.style.display === "block" ? "none" : "block"
+    }
+    if (e.key === "Escape" && inGame) window.goBack()
+})
+</script>
+</body>
+</html>
